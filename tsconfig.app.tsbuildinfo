@@ -1,1 +1,0 @@
-{"root":["./src/main.ts","./src/vite-env.d.ts","./src/def/colors.ts","./src/router/index.ts","./src/stores/player.ts","./src/App.vue","./src/components/AudioList.vue","./src/components/PlayBar.vue","./src/components/SideBar.vue","./src/components/TitleBar.vue","./src/components/UploadDialog.vue","./src/view/PlayView.vue"],"version":"5.6.3"}
