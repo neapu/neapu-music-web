@@ -1,0 +1,21 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --titalbar-bg: #E0E0E0;
+  --titalbar-text-color: #333;
+  --titalbar-height: 50px;
+
+  --sidebar-bg: #F0F0F0;
+  --sidebar-text-color: #333;
+  --sidebar-width: 240px;
+  --sidebar-item-hover-bg: #C0C0C0;
+  --sidebar-item-selected-bg: #808080;
+
+  --playbar-bg: #E0E0E0;
+  --playbar-text-color: #333;
+  --playbar-height: 50px;
+}
