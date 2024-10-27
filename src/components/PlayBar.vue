@@ -113,6 +113,14 @@ function onPauseButtonClick() {
     playerStore.pause();
 }
 
+function onLastButtonClick() {
+    playerStore.playLast(playerStore.playMode == PlayMode.Shuffle);
+}
+
+function onNextButtonClick() {
+    playerStore.playNext(playerStore.playMode == PlayMode.Shuffle);
+}
+
 function onProgressBarChange(event: Event) {
     const target = event.target as HTMLInputElement;
     if (audioRef.value) {
@@ -146,11 +154,11 @@ function onModeChangeClick() {
             </div>
         </div>
         <div class="center-section">
-            <button class="material-icons">skip_previous</button>
+            <button class="material-icons" @click="onLastButtonClick">skip_previous</button>
             <button class="material-icons" v-if="playerStore.playerState !== PlayerState.Playing"
                 @click="onPlayButtonClick">play_arrow</button>
             <button class="material-icons" v-else @click="onPauseButtonClick">pause</button>
-            <button class="material-icons">skip_next</button>
+            <button class="material-icons" @click="onNextButtonClick">skip_next</button>
         </div>
         <div class="right-section">
             <button class="mode-btn" @click="onModeChangeClick">{{ modeText }}</button>
