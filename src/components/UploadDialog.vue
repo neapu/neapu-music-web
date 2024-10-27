@@ -7,7 +7,7 @@
         <div v-if="files.length > 0" class="file-list">
             <div class="options">
                 <el-button type="primary" @click="uploadFiles" :disabled="uploading">上传</el-button>
-                <el-checkbox v-if="isUserPlaylist" v-model="isUploadPlaylist">添加<em>{{ currentPlaylistTitle }}</em></el-checkbox>
+                <el-checkbox v-if="isUserPlaylist" v-model="isUploadPlaylist">添加到<em>{{ currentPlaylistTitle }}</em></el-checkbox>
             </div>
 
             <el-table :data="files" style="width: 100%">
