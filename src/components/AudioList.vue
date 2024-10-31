@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 import { usePlayerStore, PlayListsType, AudioItem } from '../stores/player';
 import { ElNotification, ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import AudioListItem from './AudioListItem.vue';
-import { ca } from 'element-plus/es/locales.mjs';
 
 const playerStore = usePlayerStore();
 const batchOption = ref(false);
