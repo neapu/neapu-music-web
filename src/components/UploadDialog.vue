@@ -1,8 +1,8 @@
 <template>
-    <el-dialog v-model="visible" title="上传文件">
+    <el-dialog v-model="visible" title="上传文件" :before-close="closeHandler">
         <div class="upload-area" @dragover.prevent @drop.prevent="handleDrop" @click="triggerFileInput">
             <p>拖动文件到此处或点击选择文件上传</p>
-            <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" multiple />
+            <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" multiple accept="audio/*" />
         </div>
         <div v-if="files.length > 0" class="file-list">
             <div class="options">
@@ -32,7 +32,7 @@
 import { ref, defineProps, watch, computed } from 'vue';
 import { PlayListsType, usePlayerStore } from '../stores/player';
 import axios from 'axios';
-import { ElNotification } from 'element-plus';
+import { ElMessage, ElNotification } from 'element-plus';
 
 
 const playerStore = usePlayerStore();
@@ -77,6 +77,14 @@ const isUserPlaylist = computed(() => playerStore.selectedPlaylist.type == PlayL
 const currentPlaylistTitle = computed(() => playerStore.selectedPlaylist.title);
 const isUploadPlaylist = ref(false);
 const uploading = ref(false);
+
+const closeHandler = (done: () => void) => {
+    if (uploading.value) {
+        ElMessage('文件正在上传中，请等待上传完成');
+    } else {
+        done();
+    }
+};
 
 const triggerFileInput = () => {
     fileInput.value?.click();
@@ -125,6 +133,16 @@ const uploadFiles = async () => {
     uploading.value = true;
     for (const file of files.value) {
         if (file.status !== UploadStatus.Pending) {
+            continue;
+        }
+        // 判断是不是音乐文件
+        if (!file.file.type.startsWith('audio/')) {
+            file.status = UploadStatus.Failed;
+            ElNotification({
+                title: '上传失败',
+                message: '不支持的文件类型',
+                type: 'error'
+            });
             continue;
         }
         const formData = new FormData();

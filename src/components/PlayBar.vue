@@ -8,6 +8,7 @@ const positionText = ref('0:00');
 const duration = ref(0);
 const durationText = ref('0:00');
 const volume = ref(100);
+const volumeText = ref('100%');
 const modeText = ref('顺序播放');
 
 const playerStore = usePlayerStore();
@@ -133,6 +134,8 @@ function onVolumeChange(event: Event) {
     if (audioRef.value) {
         audioRef.value.volume = parseFloat(target.value) / 100;
     }
+    volume.value = parseFloat(target.value);
+    volumeText.value = `${volume.value}%`;
 }
 
 function onModeChangeClick() {
@@ -164,7 +167,7 @@ function onModeChangeClick() {
             <button class="mode-btn" @click="onModeChangeClick">{{ modeText }}</button>
             <i class="material-icons">volume_up</i>
             <input type="range" min="0" max="100" :value="volume" class="volume-control" @input="onVolumeChange" />
-            <span class="volume-percentage">50%</span>
+            <span class="volume-percentage">{{ volumeText }}</span>
             <span>{{ positionText }}</span>
             <input type="range" min="0" :max="duration" :value="position" class="progress-bar"
                 @input="onProgressBarChange" />
@@ -246,7 +249,7 @@ function onModeChangeClick() {
 }
 
 .volume-percentage {
-    padding-right: 20px;
+    padding-right: 10px;
 }
 
 .progress-bar {

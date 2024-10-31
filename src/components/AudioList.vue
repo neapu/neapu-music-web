@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { usePlayerStore, PlayListsType, AudioItem } from '../stores/player';
 import { ElNotification, ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import AudioListItem from './AudioListItem.vue';
+import { ca } from 'element-plus/es/locales.mjs';
 
 const playerStore = usePlayerStore();
 const batchOption = ref(false);
@@ -76,20 +77,23 @@ function onItemDeleteClick(id: string) {
 
 async function onDeleteDialogConfirm() {
     let ret: any;
-    for (const id of selectedIdList) {
-        if (deleteFromAll.value) {
-            ret = await playerStore.deleteAudio(id, null);
-        } else {
-            ret = await playerStore.deleteAudio(id, playerStore.selectedPlaylist.id as string);
-        }
-        if (ret != null) {
-            console.error('Failed to delete audio:', ret);
-            ElNotification({
-                title: '删除音乐失败',
-                message: ret,
-                type: 'error',
-            });
-        }
+    if (deleteFromAll.value || playerStore.selectedPlaylist.type != PlayListsType.User) {
+        ret = await playerStore.deleteAudios(selectedIdList);
+    } else {
+        ret = await playerStore.deleteAudios(selectedIdList, playerStore.selectedPlaylist.id);
+    }
+    if (ret != null) {
+        console.error('Failed to delete audio:', ret);
+        ElNotification({
+            title: '删除音乐失败',
+            message: ret,
+            type: 'error',
+        });
+    } else {
+        ElMessage({
+            message: '删除音乐成功',
+            type: 'success',
+        });
     }
     showDeleteDialog.value = false;
     batchOption.value = false;
@@ -132,13 +136,20 @@ function batchAddToPlaylist() {
     }
 }
 
-function deletePlaylist() {
+async function deletePlaylist() {
     console.log('Delete playlist clicked');
-    ElMessageBox.confirm('确定要删除歌单吗？', '删除歌单', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-    }).then(async () => {
+    try {
+        await ElMessageBox.confirm('确定要删除歌单吗？', '删除歌单', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        })
+        const loading = ElLoading.service({
+            lock: true,
+            text: '正在删除歌单...',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)',
+        });
         const ret = await playerStore.deletePlaylist(playerStore.selectedPlaylist.id as string);
         if (ret != null) {
             console.error('Failed to delete playlist:', ret);
@@ -147,15 +158,12 @@ function deletePlaylist() {
                 message: ret,
                 type: 'error',
             });
-        } else {
-            ElMessage({
-                message: '删除歌单成功',
-                type: 'success',
-            });
         }
-    }).catch(() => {
-        // Do nothing
-    });
+        loading.close();
+    } catch (error) {
+        return;
+    }
+
 }
 
 const rearranging = ref(false);
@@ -193,7 +201,6 @@ function cancelRearrange() {
 }
 
 function onItemMove(id: string, up: boolean) {
-    console.log('Move item:', id, up);
     const index = tempAudioList.value.findIndex(audio => audio.id === id);
     if (index < 0) {
         return;
@@ -222,8 +229,10 @@ function onItemMove(id: string, up: boolean) {
                 {{ playerStore.selectedPlaylist.title }}
             </div>
             <div class="header-options" v-if="!batchOption && !rearranging">
-                <el-button size="small" @click="startRearrange" v-if="playerStore.selectedPlaylist.type == PlayListsType.User">调整顺序</el-button>
-                <el-button size="small" @click="deletePlaylist" v-if="playerStore.selectedPlaylist.type == PlayListsType.User">删除歌单</el-button>
+                <el-button size="small" @click="startRearrange"
+                    v-if="playerStore.selectedPlaylist.type == PlayListsType.User">调整顺序</el-button>
+                <el-button size="small" @click="deletePlaylist"
+                    v-if="playerStore.selectedPlaylist.type == PlayListsType.User">删除歌单</el-button>
                 <el-button size="small" @click="startBatchOption">批量操作</el-button>
             </div>
             <div class="header-options" v-if="rearranging">
@@ -244,29 +253,18 @@ function onItemMove(id: string, up: boolean) {
                     </template>
                 </el-dropdown>
             </div>
-            
+
         </div>
         <div class="normal-list" v-if="!rearranging">
-            <AudioListItem 
-                :audioList="playerStore.selectedAudioList"
-                :selectedItem="selectedItem"
-                :batchOption="batchOption"
-                :rearranging="false"
-                @itemDoubleClick="onItemDoubleClick"
-                @itemAddToPlaylist="onItemAddToPlaylistClick"
-                @itemDelete="onItemDeleteClick"
-                />
+            <AudioListItem :audioList="playerStore.selectedAudioList" :selectedItem="selectedItem"
+                :batchOption="batchOption" :rearranging="false" @itemDoubleClick="onItemDoubleClick"
+                @itemAddToPlaylist="onItemAddToPlaylistClick" @itemDelete="onItemDeleteClick" />
         </div>
         <div class="rearrang-list" v-if="rearranging">
-            <AudioListItem 
-                :audioList="tempAudioList"
-                :selectedItem="selectedItem"
-                :batchOption="false"
-                :rearranging="rearranging"
-                @itemMove="onItemMove"
-                />
+            <AudioListItem :audioList="tempAudioList" :selectedItem="selectedItem" :batchOption="false"
+                :rearranging="rearranging" @itemMove="onItemMove" />
         </div>
-        
+
         <el-dialog v-model="showDeleteDialog" style="width: 400px;">
             <template #header>
                 <span>删除歌曲</span>
@@ -287,7 +285,8 @@ function onItemMove(id: string, up: boolean) {
             <template #default>
                 <p>选择要添加到的歌单：</p>
                 <el-checkbox-group v-model="addToPlaylistIds">
-                    <el-checkbox v-for="playlist in playerStore.playlists" :key="playlist.id" :label="playlist.title" :value="playlist.id">
+                    <el-checkbox v-for="playlist in playerStore.playlists" :key="playlist.id" :label="playlist.title"
+                        :value="playlist.id">
                     </el-checkbox>
                 </el-checkbox-group>
             </template>
@@ -351,5 +350,4 @@ function onItemMove(id: string, up: boolean) {
     display: flex;
     align-items: center;
 }
-
 </style>

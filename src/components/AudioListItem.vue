@@ -95,7 +95,11 @@ function onItemDeleteClick(id: string) {
     color: #666;
 }
 
-.audio-item .album,
+.audio-item .album {
+    width: 200px;
+    text-align: center;
+}
+
 .audio-item .duration {
     width: 100px;
     text-align: center;

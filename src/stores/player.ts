@@ -230,6 +230,22 @@ export const usePlayerStore = defineStore('player', () => {
         }
     }
 
+    async function deleteAudios(audios:string[], playlist: string|null = null): Promise<string | null> {
+        try {
+            const response = await axios.post('/api/music/delete_audios', { audios, playlist });
+            const { code, msg } = response.data;
+            if (code !== 0) {
+                console.error(`Failed to delete audios: ${msg}`);
+                return msg;
+            }
+            await updateCurrentAudioList();
+            return null;
+        } catch (error) {
+            console.error(`Failed to delete audios: ${error}`);
+            return 'Network error';
+        }
+    }
+
     async function addAudiosToPlaylist(audios: string[], playlist: string): Promise<string | null> {
         try {
             const response = await axios.post('/api/music/add_audios_to_playlist', { audios, playlist });
@@ -324,6 +340,7 @@ export const usePlayerStore = defineStore('player', () => {
         rearrangeSelectedPlaylist,
         deletePlaylist,
         deleteAudio,
+        deleteAudios,
         addAudiosToPlaylist,
         playAudio,
         playNext,
